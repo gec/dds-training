@@ -1,0 +1,37 @@
+module cow {
+
+	struct Reading {
+		string name;//@key
+		float voltage;
+		float current;
+		float watts;
+		float vars;
+		float frequency;
+		long timestamp;
+		boolean isOpen;
+		float stateOfCharge;
+	};
+	#pragma keylist Reading name
+
+	struct OpenClose {
+		string name;//@key
+		boolean isOpen;
+	};
+	#pragma keylist OpenClose name
+
+	struct SetWatts {
+		string name;//@key
+		float watts;
+	};
+	#pragma keylist SetWatts name
+
+	struct SvSc {
+		string name;//@key
+		boolean isSv;
+	};
+	#pragma keylist SvSc name
+
+};
+
+
+
