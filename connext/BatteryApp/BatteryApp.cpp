@@ -1,11 +1,6 @@
-/* Connext */
-//#include <dds/pub/ddspub.hpp>
-#include <dds/dds.hpp>
-// Or simply include <dds/dds.hpp> 
-#include "cow.hpp"
 
-/* OpenSplice */
-//#include "generated/cow_DCPS.hpp"
+/* Include file for convenience, to hide generated include file details */
+#include "COWDataTypesCpp11.h"
 
 //#include "unistd.h"
 #include <ctime>
@@ -26,19 +21,23 @@ int main(int argc, char *arv[])
 {
     dds::domain::DomainParticipant dp( 0 );
 
-    dds::topic::qos::TopicQos qos = 
+    dds::topic::qos::TopicQos topicQos = 
         dp.default_topic_qos()
-        << dds::core::policy::Durability::Transient()
+        //<< dds::core::policy::Durability::Transient()
         << dds::core::policy::Reliability::Reliable();
 
-    dds::topic::Topic<cow::Reading> batteryTopic( dp, "Battery", qos );
-    //dds::pub::DataWriter<cow::Reading> pvw(dp, batteryTopic, batteryTopic.qos());
-    dds::pub::DataWriter<cow::Reading> pvw(dds::pub::Publisher(dp), batteryTopic/*, batteryTopic.qos()*/);
+    dds::sub::qos::DataReaderQos datareaderQos;
+    datareaderQos = topicQos;
+    datareaderQos->copy_topic_qos(topicQos);
+    dds::pub::qos::DataWriterQos datawriterQos;
+    datawriterQos->copy_topic_qos(topicQos);
 
-    dds::topic::Topic<cow::SetWatts> swTopic( dp, "SetWatts", qos );	
-    //dds::sub::DataReader<cow::SetWatts> swr( dp, swTopic, swTopic.qos() );
-    dds::sub::DataReader<cow::SetWatts> swr(dds::sub::Subscriber(dp), swTopic/*, swTopic.qos()*/);
-    dds::sub::cond::ReadCondition swrc(swr, dds::sub::status::DataState(), [&swr](/*dds::sub::DataReader<cow::SetWatts>& dr*/){
+    dds::topic::Topic<cow::Reading> batteryTopic( dp, "Battery", topicQos);
+    dds::pub::DataWriter<cow::Reading> pvw(dds::pub::Publisher(dp), batteryTopic, datawriterQos);
+
+    dds::topic::Topic<cow::SetWatts> swTopic( dp, "SetWatts", topicQos );	
+    dds::sub::DataReader<cow::SetWatts> swr(dds::sub::Subscriber(dp), swTopic, datareaderQos);
+    dds::sub::cond::ReadCondition swrc(swr, dds::sub::status::DataState(), [&swr](){
         dds::sub::LoanedSamples<cow::SetWatts> samples = swr.take();
         dds::sub::LoanedSamples<cow::SetWatts>::const_iterator reading = samples.begin();
 
@@ -53,9 +52,8 @@ int main(int argc, char *arv[])
     }
     );
 
-    dds::topic::Topic<cow::OpenClose> ocTopic( dp, "OpenClose", qos );	
-    //dds::sub::DataReader<cow::OpenClose> ocr( dp, ocTopic, ocTopic.qos() );
-    dds::sub::DataReader<cow::OpenClose> ocr(dds::sub::Subscriber(dp), ocTopic/*, ocTopic.qos()*/);
+    dds::topic::Topic<cow::OpenClose> ocTopic( dp, "OpenClose", topicQos );	
+    dds::sub::DataReader<cow::OpenClose> ocr(dds::sub::Subscriber(dp), ocTopic, datareaderQos);
     dds::sub::cond::ReadCondition ocrc(ocr, dds::sub::status::DataState(), [&ocr]() {
         dds::sub::LoanedSamples<cow::OpenClose> samples = ocr.take();
         /* typename */ dds::sub::LoanedSamples<cow::OpenClose>::const_iterator reading = samples.begin();
@@ -68,19 +66,21 @@ int main(int argc, char *arv[])
                 std::cout << "[battery] new isOpen: " << isOpen << std::endl;
             }
            
-        }   /* else {
-            cow::OpenClose instance;
+        }   else {
+            cow::OpenClose instance("Hello", false);
             dds::core::InstanceHandle handle = reading->info().instance_handle();
             ocr.key_value(instance, handle);
             std::string name(instance.name());
             std::cout << "Writer of OpenClose left for " << name;
-        }    */
+        }
     });
 
     dds::core::cond::WaitSet ws;
     ws += swrc;
     ws += ocrc;
 
+    std::cout << "Application is publishing readings on the Battery topic, for battery \"" ID "\"" << std::endl;
+    std::cout << "  and listening to the OpenClose and SetWatts topics to adjust behavior" << std::endl;
     while( true ) {
         try {
             ws.dispatch( dds::core::Duration(1, 0) );

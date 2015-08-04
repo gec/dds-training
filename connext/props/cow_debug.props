@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <DebugSuffix>d</DebugSuffix>
+    <ConfigurationNameShort>Debug</ConfigurationNameShort>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetName>$(ProjectName)$(DebugSuffix)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile />
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="DebugSuffix">
+      <Value>$(DebugSuffix)</Value>
+    </BuildMacro>
+    <BuildMacro Include="ConfigurationNameShort">
+      <Value>$(ConfigurationNameShort)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
