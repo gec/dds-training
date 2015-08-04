@@ -124,14 +124,14 @@ namespace OpenCloseApp
                 throw ex;
             }
 
-            /* To customize topic QoS, use 
-            the configuration file USER_QOS_PROFILES.xml */
+            /* Customize QoS settings */
+            DDS.TopicQos topicQos = new DDS.TopicQos();
+            participant.get_default_topic_qos(topicQos);
+            topicQos.reliability.kind = DDS.ReliabilityQosPolicyKind.RELIABLE_RELIABILITY_QOS;
+            topicQos.durability.kind = DDS.DurabilityQosPolicyKind.TRANSIENT_LOCAL_DURABILITY_QOS;
             DDS.Topic openCloseTopic = participant.create_topic(
-                "OpenClose",
-                type_name,
-                DDS.DomainParticipant.TOPIC_QOS_DEFAULT,
-                null /* listener */,
-                DDS.StatusMask.STATUS_MASK_NONE);
+                "OpenClose", type_name, topicQos,
+                null /* listener */, DDS.StatusMask.STATUS_MASK_NONE);
             if (openCloseTopic == null)
             {
                 shutdown(participant);
@@ -142,8 +142,11 @@ namespace OpenCloseApp
 
             /* To customize data writer QoS, use 
             the configuration file USER_QOS_PROFILES.xml */
+            DDS.DataWriterQos datawriterQos = new DDS.DataWriterQos();
+            publisher.get_default_datawriter_qos(datawriterQos);
+            publisher.copy_from_topic_qos(datawriterQos, topicQos);
             DDS.DataWriter writer = publisher.create_datawriter(
-                openCloseTopic,  DDS.Publisher.DATAWRITER_QOS_DEFAULT,
+                openCloseTopic,  datawriterQos,
                 null /* listener */, DDS.StatusMask.STATUS_MASK_NONE);
             if (writer == null)
             {
@@ -171,11 +174,8 @@ namespace OpenCloseApp
             /* To customize topic QoS, use 
             the configuration file USER_QOS_PROFILES.xml */
             DDS.Topic setWattsTopic = participant.create_topic(
-                "SetWatts",
-                type_name,
-                DDS.DomainParticipant.TOPIC_QOS_DEFAULT,
-                null /* listener */,
-                DDS.StatusMask.STATUS_MASK_NONE);
+                "SetWatts", type_name, topicQos,
+                null /* listener */, DDS.StatusMask.STATUS_MASK_NONE);
             if (setWattsTopic == null)
             {
                 shutdown(participant);
@@ -187,7 +187,7 @@ namespace OpenCloseApp
             /* To customize data writer QoS, use 
             the configuration file USER_QOS_PROFILES.xml */
             writer = publisher.create_datawriter(
-                setWattsTopic, DDS.Publisher.DATAWRITER_QOS_DEFAULT,
+                setWattsTopic, datawriterQos,
                 null /* listener */, DDS.StatusMask.STATUS_MASK_NONE);
             if (writer == null)
             {
