@@ -26,13 +26,14 @@ int main(int argc, char *arv[])
     dds::pub::qos::DataWriterQos datawriterQos;
 
     topicQos = dp.default_topic_qos()
-        << dds::core::policy::Durability::TransientLocal()
         << dds::core::policy::Reliability::Reliable();
-    datareaderQos = topicQos;
     datawriterQos = topicQos;
 
     dds::topic::Topic<cow::Reading> batteryTopic( dp, "Battery", topicQos);
     dds::pub::DataWriter<cow::Reading> pvw(dds::pub::Publisher(dp), batteryTopic, datawriterQos);
+
+    topicQos << dds::core::policy::Durability::TransientLocal();
+    datareaderQos = topicQos;
 
     dds::topic::Topic<cow::SetWatts> swTopic( dp, "SetWatts", topicQos );	
     dds::sub::DataReader<cow::SetWatts> swr(dds::sub::Subscriber(dp), swTopic, datareaderQos);
