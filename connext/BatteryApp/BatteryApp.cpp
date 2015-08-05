@@ -65,6 +65,12 @@ int main(int argc, char *arv[])
                 isOpen = reading->data().isOpen();
                 std::cout << "[battery] new isOpen: " << isOpen << std::endl;
             }
+        } else {
+            cow::OpenClose instance;
+            dds::core::InstanceHandle handle = reading->info().instance_handle();
+            ocr.key_value(instance, handle);
+            std::string name(instance.name());
+            std::cout << "Writer of OpenClose left for " << name;
         }
     });
 
