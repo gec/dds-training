@@ -43,14 +43,20 @@ int main(int argc, char *arv[])
 
         if (reading->info()->valid()) {
             dds::core::string name = reading->data().name();
-            std::cout << "Received SetWatts message for " << name;
+            std::cout << "[battery] received SetWatts message for " << name;
             if (name == ID) {
                 isSv = reading->data().watts() >= 0.0;
                 std::cout << "[battery] new watts: " << watts << std::endl;
             }
+        } else {
+            cow::SetWatts instance;
+            dds::core::InstanceHandle handle = reading->info().instance_handle();
+            dds::topic::topic_type_support<cow::SetWatts>::initialize_sample(instance);
+            swr.key_value(instance, handle);
+            std::string name(instance.name());
+            std::cout << "[battery] writer of SetWatts left for battery \"" << name << "\"" << std::endl;
         }
-    }
-    );
+    });
 
     dds::topic::Topic<cow::OpenClose> ocTopic( dp, "OpenClose", topicQos );	
     dds::sub::DataReader<cow::OpenClose> ocr(dds::sub::Subscriber(dp), ocTopic, datareaderQos);
@@ -60,12 +66,19 @@ int main(int argc, char *arv[])
 
         if (reading->info()->valid()) {
             dds::core::string name = reading->data().name();
-            std::cout << "Received OpenClose message for " << name;
+            std::cout << "[battery] received OpenClose message for " << name;
             if (reading->data().name() == ID){
                 isOpen = reading->data().isOpen();
                 std::cout << "[battery] new isOpen: " << isOpen << std::endl;
             }
-        }
+        } else {
+            cow::OpenClose instance;
+            dds::core::InstanceHandle handle = reading->info().instance_handle();
+            dds::topic::topic_type_support<cow::OpenClose>::initialize_sample(instance);
+            ocr.key_value(instance, handle);
+            std::string name(instance.name());
+            std::cout << "[battery] writer of OpenClose left for battery \"" << name << "\"" << std::endl;
+        } 
     });
 
     dds::core::cond::WaitSet ws;
