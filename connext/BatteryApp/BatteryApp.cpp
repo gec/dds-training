@@ -56,7 +56,7 @@ int main(int argc, char *arv[])
     dds::sub::DataReader<cow::OpenClose> ocr(dds::sub::Subscriber(dp), ocTopic, datareaderQos);
     dds::sub::cond::ReadCondition ocrc(ocr, dds::sub::status::DataState(), [&ocr]() {
         dds::sub::LoanedSamples<cow::OpenClose> samples = ocr.take();
-        /* typename */ dds::sub::LoanedSamples<cow::OpenClose>::const_iterator reading = samples.begin();
+        dds::sub::LoanedSamples<cow::OpenClose>::const_iterator reading = samples.begin();
 
         if (reading->info()->valid()) {
             dds::core::string name = reading->data().name();
@@ -65,12 +65,6 @@ int main(int argc, char *arv[])
                 isOpen = reading->data().isOpen();
                 std::cout << "[battery] new isOpen: " << isOpen << std::endl;
             }
-        } else {
-            cow::OpenClose instance;
-            dds::core::InstanceHandle handle = reading->info().instance_handle();
-            ocr.key_value(instance, handle);
-            std::string name(instance.name());
-            std::cout << "Writer of OpenClose left for " << name;
         }
     });
 
